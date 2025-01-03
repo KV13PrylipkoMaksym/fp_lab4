@@ -1,0 +1,23 @@
+(defun add-next-fn (&key (transform 'identity))
+  (let ((prev-element nil))
+  (lambda (current)
+    (if prev-element  
+         (progn (rplacd prev-element (funcall transform current))
+                (setf prev-element (cons (cdr prev-element) nil)))
+         (setf prev-element (cons (funcall transform current) nil)))
+      )))
+
+ (defun run-next-fn-test (input transform expected-result test-description)
+  (let ((result (if(not(null transform))(mapcar (add-next-fn :transform transform) input)(mapcar (add-next-fn) input))))
+    (if (equal result expected-result)
+        (format t "~A: success.~%" test-description)
+        (format t "~A: failed! ~%Expected: ~A~%Got: ~A~%" test-description expected-result result))))
+
+(defun add-next-fn-test ()
+  (format t "Testing add-next-fn...~%")
+  (run-next-fn-test '(1 2 3) nil '((1 . 2) (2 . 3) (3 . NIL)) "1 ")
+  (run-next-fn-test '(1 2 3) #'1+ '((2 . 3) (3 . 4) (4 . NIL)) "2 ")
+  (run-next-fn-test '() nil '() "3 ")
+  (run-next-fn-test '(1) nil '((1 . NIL)) "4 ")
+  (run-next-fn-test '(1) #'1+ '((2 . NIL)) "5 ")
+  (format t "Test completed~%"))
